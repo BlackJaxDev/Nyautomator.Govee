@@ -1,0 +1,41 @@
+{
+  "$schema": "nyautomator.template.v1",
+  "id": "smart-lights-govee-beat-reactive-lights",
+  "kind": "automation-workflow",
+  "title": "Beat-reactive lights/visuals",
+  "group": "Smart Lights (Govee)",
+  "summary": "audio input -> beat detect trigger -> set Govee color or fire visual pulse.",
+  "description": "Beat-reactive lights/visuals: audio input -> beat detect trigger -> set Govee color or fire visual pulse.",
+  "rootOnly": true,
+  "generatedFrom": "docs/template-ideas.md",
+  "triggers": [
+    {
+      "id": "trigger-1",
+      "actionType": "Manual.DashboardButton",
+      "actionConfig": {
+        "ButtonText": "Beat-reactive lights/visuals"
+      },
+      "actionName": "Beat-reactive lights/visuals Button"
+    }
+  ],
+  "messageTemplate": "Beat-reactive lights/visuals triggered.",
+  "constants": [
+    {
+      "key": "colorHex",
+      "name": "Govee Color Hex",
+      "value": "#44ccff",
+      "type": "string"
+    },
+    {
+      "key": "visualNodeId",
+      "name": "Visual Node ID",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "steps": [
+    "govee-color",
+    "visual-toggle-on",
+    "log"
+  ]
+}

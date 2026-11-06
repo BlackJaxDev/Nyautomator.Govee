@@ -1,0 +1,41 @@
+{
+  "$schema": "nyautomator.template.v1",
+  "id": "smart-lights-govee-stream-mode-switcher",
+  "kind": "automation-workflow",
+  "title": "Stream mode switcher",
+  "group": "Smart Lights (Govee)",
+  "summary": "dashboard buttons set a global \"mode\" variable -> GlobalVariable.Changed trigger applies scene/audio/light presets per mode.",
+  "description": "Stream mode switcher: dashboard buttons set a global \"mode\" variable -> GlobalVariable.Changed trigger applies scene/audio/light presets per mode.",
+  "rootOnly": true,
+  "generatedFrom": "docs/template-ideas.md",
+  "triggers": [
+    {
+      "id": "trigger-1",
+      "actionType": "GlobalVariable.Changed",
+      "actionConfig": {
+        "VariableName": "*"
+      },
+      "actionName": "Global Variable Changed"
+    }
+  ],
+  "messageTemplate": "{{Name}} changed to {{Value}}.",
+  "constants": [
+    {
+      "key": "colorHex",
+      "name": "Govee Color Hex",
+      "value": "#44ccff",
+      "type": "string"
+    },
+    {
+      "key": "variableName",
+      "name": "Global Variable Name",
+      "value": "stream_mode_switcher",
+      "type": "string"
+    }
+  ],
+  "steps": [
+    "govee-color",
+    "set-global-variable",
+    "log"
+  ]
+}

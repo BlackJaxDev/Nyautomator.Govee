@@ -185,6 +185,69 @@
           "govee"
         ],
         "order": 603
+      },
+      {
+        "id": "smart-lights-govee-beat-reactive-lights",
+        "label": "Beat-reactive lights/visuals",
+        "description": "audio input -> beat detect trigger -> set Govee color or fire visual pulse.",
+        "category": "Smart Lights (Govee)",
+        "path": "templates/smart-lights-govee-beat-reactive-lights.json",
+        "requiredModuleIds": [
+          "govee"
+        ],
+        "order": 604
+      },
+      {
+        "id": "smart-lights-govee-stream-mode-switcher",
+        "label": "Stream mode switcher",
+        "description": "dashboard buttons set a global \"mode\" variable -> GlobalVariable.Changed trigger applies scene/audio/light presets per mode.",
+        "category": "Smart Lights (Govee)",
+        "path": "templates/smart-lights-govee-stream-mode-switcher.json",
+        "requiredModuleIds": [
+          "govee"
+        ],
+        "order": 605
+      }
+    ],
+    "graphStepPresets": [
+      {
+        "id": "govee-color",
+        "type": "Govee.Device.Color",
+        "name": "Set Govee Color",
+        "config": {
+          "Hex": "#44ccff",
+          "Red": 68,
+          "Green": 204,
+          "Blue": 255
+        },
+        "bindings": {
+          "colorHex": "Hex"
+        },
+        "order": 600
+      },
+      {
+        "id": "govee-brightness",
+        "type": "Govee.Device.Brightness",
+        "name": "Set Govee Brightness",
+        "config": {
+          "Brightness": 100
+        },
+        "bindings": {
+          "brightness": "Brightness"
+        },
+        "order": 601
+      },
+      {
+        "id": "govee-power",
+        "type": "Govee.Device.Power",
+        "name": "Set Govee Power",
+        "config": {
+          "TurnOn": true
+        },
+        "bindings": {
+          "powerOn": "TurnOn"
+        },
+        "order": 602
       }
     ],
     "automationAssemblies": [
