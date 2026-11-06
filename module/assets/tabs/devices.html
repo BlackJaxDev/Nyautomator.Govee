@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Govee Devices</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: transparent; }
+    body { overflow: hidden; }
+    button, input, select { font: inherit; }
+    .shell { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    h2 { font-size: 1.5rem; font-weight: 700; color: #f8fafc; margin: 0; }
+    .sub { font-size: 0.875rem; color: #94a3b8; margin-top: 4px; }
+    .sub.small { font-size: 0.8rem; margin-top: 2px; }
+    .sub.error { color: #f87171; }
+    .header-actions { display: flex; gap: 12px; }
+    .primary { display: flex; align-items: center; gap: 8px; padding: 8px 16px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+    .primary.state { background: #0ea5e9; }
+    .primary.list { background: #3b82f6; }
+    .primary:disabled { cursor: not-allowed; opacity: 0.6; }
+    .primary.busy svg { animation: spin 1s linear infinite; }
+    .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filters input, .filters select { padding: 10px 14px; border-radius: 8px; border: 1px solid #1f2a37; background: #0f172a; color: #e2e8f0; }
+    .filters input { flex: 1 1 260px; min-width: 220px; }
+    .filters select { flex: 0 0 200px; padding: 10px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat { background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(15,23,42,0.6)); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+    .stat .label { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8; }
+    .stat .value { font-size: 1.4rem; font-weight: 700; }
+    .alert { padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; color: #fca5a5; margin-bottom: 24px; }
+    .notice { padding: 12px; background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.35); border-radius: 8px; color: #bae6fd; margin-bottom: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .empty { text-align: center; padding: 48px; color: #64748b; }
+
+    .device-card { background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.6)); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.35); transition: border-color 0.2s, box-shadow 0.25s ease; }
+    .device-card:hover { border-color: rgba(59, 130, 246, 0.35); box-shadow: 0 18px 35px rgba(15, 23, 42, 0.55); }
+    .card-header { display: flex; align-items: center; gap: 12px; }
+    .device-icon { width: 40px; height: 40px; background: radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.35), rgba(15, 23, 42, 0.9)); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #e2e8f0; }
+    .device-info { flex: 1; min-width: 0; }
+    .device-name { font-weight: 600; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .device-meta { font-size: 0.75rem; color: #94a3b8; }
+    .category-chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 0.65rem; font-weight: 600; background: rgba(14, 165, 233, 0.15); color: #7dd3fc; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status-badge { font-size: 0.7rem; font-weight: 600; padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .info-item { display: flex; flex-direction: column; gap: 2px; }
+    .info-item .label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+    .info-item .value { font-size: 0.85rem; color: #cbd5e1; font-family: monospace; }
+    .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #334155; }
+    .capabilities { display: flex; gap: 6px; }
+    .footer-actions { display: flex; align-items: center; gap: 12px; }
+    .cap-badge { width: 24px; height: 24px; border-radius: 6px; background: #334155; color: #94a3b8; display: flex; align-items: center; justify-content: center; }
+    .signal-strength { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #64748b; }
+    .power-controls, .toggle-buttons { display: flex; background: #0f172a; border-radius: 6px; padding: 2px; gap: 2px; }
+    .power-btn { border: none; padding: 4px 10px; font-size: 0.7rem; font-weight: 600; cursor: pointer; border-radius: 4px; transition: all 0.2s; background: #1e293b; color: #94a3b8; }
+    .power-btn.on:hover:not(:disabled) { background: #059669; color: white; }
+    .power-btn.off:hover:not(:disabled) { background: #dc2626; color: white; }
+    .power-btn:disabled, .control-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .action-message { font-size: 0.75rem; font-weight: 500; }
+    .action-message.success { color: #4ade80; }
+    .action-message.error { color: #f87171; }
+    .device-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; border-top: 1px solid #334155; padding-top: 12px; }
+    .control-block { background: #0f172a; border: 1px solid #1f2937; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .control-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #e2e8f0; }
+    .control-slider { width: 100%; }
+    .control-actions { display: flex; justify-content: flex-end; }
+    .control-btn { border: none; border-radius: 4px; padding: 4px 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer; background: #1e293b; color: #94a3b8; transition: background 0.2s, color 0.2s; }
+    .control-btn:hover:not(:disabled) { background: #3b82f6; color: white; }
+    .control-select, .control-input { background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; padding: 6px; font-size: 0.8rem; width: 100%; }
+    .control-color { display: flex; align-items: center; gap: 8px; }
+    .control-color-value { font-size: 0.75rem; color: #94a3b8; }
+    .device-state-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 4px; }
+    .state-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: rgba(148, 163, 184, 0.15); color: #e2e8f0; }
+    .state-pill.on { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+    .state-pill.off { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+    .state-pill.color-pill { background: rgba(14, 165, 233, 0.15); color: #7dd3fc; }
+    .state-pill.timestamp { background: rgba(148, 163, 184, 0.1); color: #94a3b8; }
+    .color-dot { width: 12px; height: 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.4); }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="shell" id="shell">
+    <div class="header">
+      <div>
+        <h2>Govee Devices</h2>
+        <div class="sub" id="summary">Showing 0 / 0 devices</div>
+        <div class="sub small" id="liveStatus">Live status: Not yet loaded</div>
+      </div>
+      <div class="header-actions">
+        <button class="primary state" id="refreshState" type="button" disabled></button>
+        <button class="primary list" id="refreshList" type="button"></button>
+      </div>
+    </div>
+    <div class="filters">
+      <input id="search" type="text" placeholder="Search by name, SKU, or device ID">
+      <select id="typeFilter"></select>
+      <select id="powerFilter"></select>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div id="notice"></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>No devices match the current filters. Adjust your filters or make sure devices are online.</div>
+  </div>
+
+  <script>
+    const MODULE_ID = 'govee';
+    const ASSET_PATH = 'tabs/devices.html';
+    const API = `/modules/${MODULE_ID}/api`;
+    const STATUS_POLL_MS = 15000;
+
+    const ICONS = {
+      light: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2v1"/><path d="M12 7a5 5 0 1 0 5 5c0-2.76-2.24-5-5-5zm0 0V2"/></svg>',
+      socket: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12"/><rect x="4" y="7" width="16" height="10" rx="2"/><path d="M8 11v2"/><path d="M16 11v2"/><path d="M12 7V3"/></svg>',
+      refresh: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>',
+      power: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>',
+      palette: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12c0 .682.087 1.345.253 1.976.426 1.598 1.82 2.774 3.47 2.774 1.25 0 2.34-.66 2.935-1.653.368-.606 1.02-1.097 1.742-1.097h1.1c1.38 0 2.5 1.12 2.5 2.5v.5c0 1.38 1.12 2.5 2.5 2.5z"/></svg>',
+      music: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+      wifi: (signal) => {
+        const bars = signal > -50 ? 3 : signal > -70 ? 2 : 1;
+        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0" opacity="${bars >= 1 ? 1 : 0.3}"/><path d="M1.42 9a16 16 0 0 1 21.16 0" opacity="${bars >= 2 ? 1 : 0.3}"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0" opacity="${bars >= 3 ? 1 : 0.3}"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`;
+      }
+    };
+
+    const DEVICE_CATEGORY_LABELS = { light: 'Light', plug: 'Plug / Socket', climate: 'Climate', ambient: 'Ambient', other: 'Device' };
+    const DEVICE_TYPE_OPTIONS = [
+      ['all', 'All device types'], ['light', 'Lights'], ['plug', 'Plugs / Sockets'],
+      ['climate', 'Climate & Comfort'], ['ambient', 'Ambient / Decor'], ['other', 'Other']
+    ];
+    const POWER_FILTER_OPTIONS = [
+      ['all', 'Any power state'], ['on', 'Powered On'], ['off', 'Powered Off'], ['unknown', 'Unknown state']
+    ];
+    const FRIENDLY_INSTANCE_NAMES = {
+      brightness: 'Brightness', colorsaturation: 'Color Saturation', colortemperature: 'Color Temperature',
+      colortemperaturek: 'Color Temperature', colorTemperature: 'Color Temperature', colorTemperatureK: 'Color Temperature',
+      colorrgb: 'Color', colorRgb: 'Color', powerSwitch: 'Power', presetScene: 'Preset Scene',
+      nightlightScene: 'Night Light', gradientToggle: 'Gradient', oscillationToggle: 'Oscillation',
+      humidity: 'Humidity', workMode: 'Work Mode'
+    };
+
+    const state = {
+      devices: [],
+      deviceStates: {},
+      loading: true,
+      error: null,
+      meta: { success: true, message: null, timestampUtc: null },
+      statusMeta: { loading: false, error: null, timestampUtc: null },
+      search: '',
+      typeFilter: 'all',
+      powerFilter: 'all',
+      controlValues: {},
+      pending: {},
+      actionMessages: {},
+      pollTimer: null
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+    }
+
+    function reportFrameHeight() {
+      const height = $('shell').getBoundingClientRect().height || document.body.scrollHeight;
+      window.parent?.postMessage({ type: 'nyautomator:module-frame-height', moduleId: MODULE_ID, assetPath: ASSET_PATH, height: height + 8 }, window.location.origin);
+    }
+
+    function humanizeInstance(instance) {
+      if (!instance) return 'Capability';
+      if (FRIENDLY_INSTANCE_NAMES[instance]) return FRIENDLY_INSTANCE_NAMES[instance];
+      return instance.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, ch => ch.toUpperCase());
+    }
+
+    const capabilityLabel = (cap) => humanizeInstance(cap?.instance);
+    const capabilityKey = (cap) => cap ? `${cap.type}:${cap.instance}` : '';
+    const isPlainObject = (value) => !!value && typeof value === 'object' && !Array.isArray(value);
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+    const makeDeviceKey = (deviceId, sku) => `${deviceId ?? ''}|${sku ?? ''}`;
+
+    function extractRangeInfo(capability, fallback) {
+      if (!capability || !isPlainObject(capability.parameters)) return fallback;
+      const parameters = capability.parameters;
+      const range = isPlainObject(parameters.range) ? parameters.range : parameters;
+      const min = typeof range.min === 'number' ? range.min : fallback.min;
+      const max = typeof range.max === 'number' ? range.max : fallback.max;
+      const step = typeof range.step === 'number' ? range.step : typeof range.precision === 'number' ? range.precision : fallback.step;
+      const defaultValue = typeof parameters.defaultValue === 'number' ? parameters.defaultValue
+        : typeof range.defaultValue === 'number' ? range.defaultValue
+        : typeof range.default === 'number' ? range.default
+        : max;
+      return { min, max, step: step || fallback.step || 1, defaultValue: defaultValue ?? fallback.defaultValue };
+    }
+
+    function collectOptions(source, target, seen, prefix) {
+      if (!Array.isArray(source)) return;
+      for (const entry of source) {
+        if (entry && Array.isArray(entry.options) && (entry.value === undefined || entry.value === null)) {
+          collectOptions(entry.options, target, seen, [prefix, entry.name].filter(Boolean).join(' • '));
+          continue;
+        }
+        const rawValue = typeof entry === 'object' && entry !== null ? (entry.value ?? entry.id ?? entry.name) : entry;
+        if (rawValue === undefined || rawValue === null) continue;
+        if (typeof rawValue !== 'string' && typeof rawValue !== 'number') continue;
+        const labelSource = typeof entry === 'object' && entry !== null ? (entry.name ?? entry.label ?? rawValue) : rawValue;
+        const label = [prefix, labelSource].filter(Boolean).join(' • ') || String(rawValue);
+        const key = `${typeof rawValue}:${rawValue}`;
+        if (seen.has(key)) continue;
+        target.push({ label, value: rawValue });
+        seen.add(key);
+      }
+    }
+
+    function extractEnumOptions(capability) {
+      if (!capability || !isPlainObject(capability.parameters)) return [];
+      const collected = [];
+      const seen = new Set();
+      for (const bucket of ['options', 'values', 'modes', 'scenes']) {
+        const source = capability.parameters[bucket];
+        if (!Array.isArray(source)) continue;
+        collectOptions(source, collected, seen);
+        if (collected.length > 0) break;
+      }
+      return collected;
+    }
+
+    function parseHexColor(value) {
+      if (typeof value !== 'string') return null;
+      let hex = value.trim();
+      if (!hex) return null;
+      if (hex.startsWith('#')) hex = hex.slice(1);
+      if (hex.length === 3) hex = hex.split('').map(ch => ch + ch).join('');
+      if (hex.length !== 6) return null;
+      const numeric = parseInt(hex, 16);
+      if (Number.isNaN(numeric)) return null;
+      return { r: (numeric >> 16) & 0xff, g: (numeric >> 8) & 0xff, b: numeric & 0xff };
+    }
+
+    function packRgb({ r, g, b }) {
+      const byte = (value) => clamp(Math.round(Number(value ?? 0)), 0, 255);
+      return (byte(r) << 16) | (byte(g) << 8) | byte(b);
+    }
+
+    function getDeviceCategory(device) {
+      const type = (device?.type ?? '').toLowerCase();
+      const sku = (device?.sku ?? '').toLowerCase();
+      if (type.includes('light') || sku.startsWith('h6')) return 'light';
+      if (type.includes('bulb') || type.includes('ambient')) return 'ambient';
+      if (type.includes('socket') || type.includes('plug') || type.includes('outlet')) return 'plug';
+      if (type.includes('heater') || type.includes('humidifier') || type.includes('thermostat')) return 'climate';
+      return 'other';
+    }
+
+    function resolveBinaryCapabilityValue(capability, turnOn) {
+      const options = extractEnumOptions(capability);
+      if (options.length === 0) return turnOn ? 1 : 0;
+      const keywords = turnOn ? ['on', 'true', 'enable'] : ['off', 'false', 'disable'];
+      const normalize = (value) => value === null || value === undefined ? '' : String(value).trim().toLowerCase();
+      const byLabel = options.find(opt => keywords.some(keyword => normalize(opt.label).includes(keyword)));
+      if (byLabel) return byLabel.value;
+      const byValue = options.find(opt => {
+        if (typeof opt.value === 'number') return turnOn ? opt.value === 1 : opt.value === 0;
+        if (typeof opt.value === 'string') return keywords.some(keyword => normalize(opt.value) === keyword);
+        return false;
+      });
+      return byValue ? byValue.value : options[0].value;
+    }
+
+    function interpretPowerValue(value) {
+      if (typeof value === 'boolean') return { isOn: value, label: value ? 'On' : 'Off' };
+      if (typeof value === 'number') return { isOn: value !== 0, label: value !== 0 ? 'On' : 'Off' };
+      if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        if (['on', '1', 'true', 'open'].includes(normalized)) return { isOn: true, label: 'On' };
+        if (['off', '0', 'false', 'close'].includes(normalized)) return { isOn: false, label: 'Off' };
+      }
+      return { isOn: null, label: 'Unknown' };
+    }
+
+    function coerceNumeric(value) {
+      if (typeof value === 'number' && Number.isFinite(value)) return value;
+      if (typeof value === 'string') {
+        const parsed = Number(value);
+        if (!Number.isNaN(parsed)) return parsed;
+      }
+      return null;
+    }
+
+    function formatColorHex(value) {
+      if (typeof value === 'number' && Number.isFinite(value))
+        return `#${(value >>> 0).toString(16).padStart(6, '0')}`;
+      if (isPlainObject(value)) {
+        const r = coerceNumeric(value.r), g = coerceNumeric(value.g), b = coerceNumeric(value.b);
+        if (r === null || g === null || b === null) return null;
+        return `#${packRgb({ r, g, b }).toString(16).padStart(6, '0')}`;
+      }
+      return null;
+    }
+
+    const formatKelvin = (value) => { const n = coerceNumeric(value); return n === null ? null : `${Math.round(n)} K`; };
+    const formatPercentage = (value) => { const n = coerceNumeric(value); return n === null ? null : `${Math.round(n)}%`; };
+    const formatTime = (value) => {
+      if (!value) return null;
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date.toLocaleTimeString();
+    };
+
+    function capabilityStateValue(capability) {
+      if (!capability) return null;
+      if (capability.value !== undefined && capability.value !== null) return capability.value;
+      if (capability.state !== undefined && capability.state !== null) return capability.state;
+      return null;
+    }
+
+    function powerSnapshot(status) {
+      const capability = status?.capabilities?.find(cap => cap.type === 'devices.capabilities.on_off');
+      return capability ? interpretPowerValue(capabilityStateValue(capability)) : { isOn: null, label: 'Unknown' };
+    }
+
+    async function readJson(res) {
+      try { return await res.json(); } catch { return null; }
+    }
+
+    async function loadDevices(refresh) {
+      state.loading = true;
+      state.error = null;
+      renderHeader();
+      try {
+        const res = await fetch(`${API}/devices?refresh=${refresh ? 'true' : 'false'}`, { cache: 'no-store' });
+        const payload = await readJson(res);
+        if (!res.ok)
+          throw new Error(payload?.error || `Request failed with status ${res.status}`);
+        const success = payload?.success !== false;
+        state.meta = { success, message: payload?.message || null, timestampUtc: payload?.timestampUtc || null };
+        state.devices = success && Array.isArray(payload?.devices) ? payload.devices : [];
+      } catch (err) {
+        state.error = err?.message || 'Failed to load Govee devices.';
+      } finally {
+        state.loading = false;
+      }
+      render();
+      restartStatusPolling();
+    }
+
+    async function fetchDeviceStatuses() {
+      const devices = state.devices
+        .map(device => ({ deviceId: device.deviceId, sku: device.sku }))
+        .filter(entry => entry.deviceId && entry.sku);
+      if (devices.length === 0) {
+        state.deviceStates = {};
+        state.statusMeta = { ...state.statusMeta, loading: false, timestampUtc: null };
+        render();
+        return;
+      }
+
+      state.statusMeta = { ...state.statusMeta, loading: true, error: null };
+      renderHeader();
+      try {
+        const res = await fetch(`${API}/devices/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ devices })
+        });
+        const payload = await readJson(res);
+        if (!res.ok)
+          throw new Error(payload?.error || `Status request failed (${res.status}).`);
+        const map = {};
+        for (const status of payload?.statuses || [])
+          map[makeDeviceKey(status.deviceId, status.sku)] = status;
+        state.deviceStates = map;
+        state.statusMeta = { loading: false, error: null, timestampUtc: payload?.timestampUtc ?? new Date().toISOString() };
+      } catch (err) {
+        state.statusMeta = { loading: false, error: err?.message || 'Failed to load device status.', timestampUtc: null };
+      }
+      render();
+    }
+
+    function restartStatusPolling() {
+      if (state.pollTimer) {
+        clearInterval(state.pollTimer);
+        state.pollTimer = null;
+      }
+      if (!state.devices.length) {
+        state.deviceStates = {};
+        state.statusMeta = { ...state.statusMeta, loading: false, timestampUtc: null };
+        render();
+        return;
+      }
+      fetchDeviceStatuses();
+      state.pollTimer = setInterval(fetchDeviceStatuses, STATUS_POLL_MS);
+    }
+
+    async function sendCommand(device, { type, instance, value, parameters, label }) {
+      const deviceKey = makeDeviceKey(device.deviceId, device.sku);
+      if (!type || !instance) return;
+      if (!device.deviceId || !device.sku) {
+        state.actionMessages[deviceKey] = { error: 'Missing device metadata.' };
+        render();
+        return;
+      }
+
+      state.pending[deviceKey] = `${type}:${instance}`;
+      delete state.actionMessages[deviceKey];
+      render();
+      try {
+        const res = await fetch(`${API}/device/control`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deviceId: device.deviceId, sku: device.sku, capabilityType: type, instance, value, parameters })
+        });
+        const payload = await readJson(res);
+        if (!res.ok || payload?.success !== true)
+          throw new Error(payload?.message ?? payload?.error ?? `Command failed (${res.status}).`);
+        state.actionMessages[deviceKey] = { message: label ? `${label} updated` : 'Command sent' };
+        delete state.pending[deviceKey];
+        await loadDevices(true);
+        return;
+      } catch (err) {
+        state.actionMessages[deviceKey] = { error: err?.message || 'Failed to control device.' };
+      }
+      delete state.pending[deviceKey];
+      render();
+    }
+
+    function filteredDevices() {
+      const query = state.search.trim().toLowerCase();
+      return state.devices.filter(device => {
+        if (state.typeFilter !== 'all' && getDeviceCategory(device) !== state.typeFilter) return false;
+        if (query) {
+          const haystack = `${device.name ?? ''} ${device.sku ?? ''} ${device.deviceId ?? ''}`.toLowerCase();
+          if (!haystack.includes(query)) return false;
+        }
+        if (state.powerFilter !== 'all') {
+          const snapshot = powerSnapshot(state.deviceStates[makeDeviceKey(device.deviceId, device.sku)]);
+          if (state.powerFilter === 'on' && snapshot.isOn !== true) return false;
+          if (state.powerFilter === 'off' && snapshot.isOn !== false) return false;
+          if (state.powerFilter === 'unknown' && snapshot.isOn !== null) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderHeader() {
+      const filtered = filteredDevices();
+      const refreshed = state.meta.timestampUtc ? new Date(state.meta.timestampUtc).toLocaleTimeString() : 'Never';
+      $('summary').textContent = `Showing ${filtered.length} / ${state.devices.length} devices • Inventory refreshed: ${refreshed}`;
+
+      const live = state.statusMeta.loading
+        ? 'Updating…'
+        : state.statusMeta.timestampUtc ? `Updated ${new Date(state.statusMeta.timestampUtc).toLocaleTimeString()}` : 'Not yet loaded';
+      $('liveStatus').textContent = `Live status: ${live}${state.statusMeta.error ? ` (${state.statusMeta.error})` : ''}`;
+      $('liveStatus').classList.toggle('error', !!state.statusMeta.error);
+
+      const stateButton = $('refreshState');
+      stateButton.disabled = state.statusMeta.loading || !state.devices.length;
+      stateButton.classList.toggle('busy', state.statusMeta.loading);
+      stateButton.innerHTML = `${ICONS.refresh}${state.statusMeta.loading ? 'Refreshing State…' : 'Refresh State'}`;
+
+      const listButton = $('refreshList');
+      listButton.disabled = state.loading;
+      listButton.classList.toggle('busy', state.loading);
+      listButton.innerHTML = `${ICONS.refresh}${state.loading ? 'Refreshing…' : 'Refresh List'}`;
+      reportFrameHeight();
+    }
+
+    function renderStats() {
+      let powerOn = 0;
+      let powerOff = 0;
+      for (const device of state.devices) {
+        const snapshot = powerSnapshot(state.deviceStates[makeDeviceKey(device.deviceId, device.sku)]);
+        if (snapshot.isOn === true) powerOn += 1;
+        else if (snapshot.isOn === false) powerOff += 1;
+      }
+      const total = state.devices.length;
+      const cards = [
+        ['Total Devices', total, '#38bdf8'],
+        ['LAN Connected', state.devices.filter(device => device.isOnSameNetwork).length, '#34d399'],
+        ['LAN Capable', state.devices.filter(device => device.supportsLanControl).length, '#a5b4fc'],
+        ['Powered On', powerOn, '#fbbf24'],
+        ['Powered Off', powerOff, '#f87171'],
+        ['Unknown State', Math.max(total - powerOn - powerOff, 0), '#94a3b8']
+      ];
+      $('stats').innerHTML = cards.map(([label, value, accent]) => `
+        <div class="stat" style="border: 1px solid ${accent}33">
+          <span class="label">${label}</span>
+          <span class="value" style="color: ${accent}">${value}</span>
+        </div>`).join('');
+    }
+
+    function controlValue(deviceKey, key, fallback) {
+      const values = state.controlValues[deviceKey] || {};
+      return Object.prototype.hasOwnProperty.call(values, key) ? values[key] : fallback;
+    }
+
+    function setControlValue(deviceKey, key, value) {
+      state.controlValues[deviceKey] = { ...(state.controlValues[deviceKey] || {}), [key]: value };
+    }
+
+    function capabilityBadge(type) {
+      if (type.includes('on_off')) return `<span title="Power Control" class="cap-badge">${ICONS.power}</span>`;
+      if (type.includes('color')) return `<span title="Color Control" class="cap-badge">${ICONS.palette}</span>`;
+      if (type.includes('music')) return `<span title="Music Mode" class="cap-badge">${ICONS.music}</span>`;
+      return '';
+    }
+
+    function renderDeviceCard(device, index) {
+      const deviceKey = makeDeviceKey(device.deviceId, device.sku);
+      const status = state.deviceStates[deviceKey];
+      const busy = !!state.pending[deviceKey];
+      const disabled = busy ? 'disabled' : '';
+      const capabilities = Array.isArray(device.capabilities) ? device.capabilities : [];
+      const category = getDeviceCategory(device);
+      const isLight = (device.type ?? '').includes('light') || (device.sku ?? '').startsWith('H6');
+      const findInstance = (predicate) => capabilities.find(cap => predicate((cap.instance ?? '').toLowerCase()));
+
+      const powerCap = capabilities.find(cap => cap.type === 'devices.capabilities.on_off');
+      const brightnessCap = findInstance(instance => instance === 'brightness');
+      const colorTempCap = findInstance(instance => instance === 'colortemperature' || instance === 'colortemperaturek');
+      const colorCap = findInstance(instance => instance === 'colorrgb');
+      const sceneCaps = capabilities.filter(cap => cap.type === 'devices.capabilities.mode' || cap.type === 'devices.capabilities.dynamic_scene');
+      const toggleCaps = capabilities.filter(cap => cap.type === 'devices.capabilities.toggle');
+
+      const statusCaps = Array.isArray(status?.capabilities) ? status.capabilities : [];
+      const liveValue = (predicate) => capabilityStateValue(statusCaps.find(predicate));
+      const power = interpretPowerValue(liveValue(cap => cap.type === 'devices.capabilities.on_off'));
+      const brightnessText = formatPercentage(liveValue(cap => (cap.instance ?? '').toLowerCase() === 'brightness'));
+      const tempText = formatKelvin(liveValue(cap => (cap.instance ?? '').toLowerCase().startsWith('colortemperature')));
+      const colorText = formatColorHex(liveValue(cap => (cap.instance ?? '').toLowerCase() === 'colorrgb'));
+      const updated = formatTime(status?.retrievedAtUtc);
+
+      const lan = device.isOnSameNetwork
+        ? { text: 'Local LAN', color: '#4ade80', bg: 'rgba(74, 222, 128, 0.1)' }
+        : device.supportsLanControl
+          ? { text: 'LAN Capable', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.1)' }
+          : { text: 'Cloud Only', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.1)' };
+
+      const info = [
+        device.localIpAddress ? ['IP Address', device.localIpAddress, ''] : null,
+        device.wifiSsid ? ['Wi-Fi', device.wifiSsid, device.wifiBssid || ''] : null,
+        device.firmwareVersion ? ['Firmware', device.firmwareVersion, ''] : null
+      ].filter(Boolean);
+
+      const brightnessRange = extractRangeInfo(brightnessCap, { min: 0, max: 100, step: 1, defaultValue: 100 });
+      const tempRange = extractRangeInfo(colorTempCap, { min: 2000, max: 7000, step: 50, defaultValue: 3500 });
+      const brightness = Number(controlValue(deviceKey, capabilityKey(brightnessCap), brightnessRange.defaultValue));
+      const temp = Number(controlValue(deviceKey, capabilityKey(colorTempCap), tempRange.defaultValue));
+      const color = controlValue(deviceKey, capabilityKey(colorCap), '#ffffff');
+
+      const controls = [];
+      if (brightnessCap) controls.push(`
+        <div class="control-block">
+          <div class="control-label"><span>${escapeHtml(capabilityLabel(brightnessCap))}</span><span data-readout="brightness">${Math.round(brightness)}%</span></div>
+          <input class="control-slider" type="range" data-control="brightness" min="${brightnessRange.min}" max="${brightnessRange.max}" step="${brightnessRange.step}" value="${brightness}" ${disabled}>
+          <div class="control-actions"><button class="control-btn" data-action="brightness" ${disabled}>Apply</button></div>
+        </div>`);
+      if (colorTempCap) controls.push(`
+        <div class="control-block">
+          <div class="control-label"><span>${escapeHtml(capabilityLabel(colorTempCap))}</span><span data-readout="temperature">${Math.round(temp)}K</span></div>
+          <input class="control-slider" type="range" data-control="temperature" min="${tempRange.min}" max="${tempRange.max}" step="${tempRange.step}" value="${temp}" ${disabled}>
+          <div class="control-actions"><button class="control-btn" data-action="temperature" ${disabled}>Apply</button></div>
+        </div>`);
+      if (colorCap) controls.push(`
+        <div class="control-block">
+          <div class="control-label"><span>${escapeHtml(capabilityLabel(colorCap))}</span></div>
+          <div class="control-color">
+            <input type="color" data-control="color" value="${escapeHtml(typeof color === 'string' ? color : '#ffffff')}" ${disabled}>
+            <span class="control-color-value" data-readout="color">${escapeHtml(typeof color === 'string' ? color : '#ffffff')}</span>
+          </div>
+          <div class="control-actions"><button class="control-btn" data-action="color" ${disabled}>Apply</button></div>
+        </div>`);
+      sceneCaps.forEach((cap, sceneIndex) => {
+        const options = extractEnumOptions(cap);
+        const current = controlValue(deviceKey, capabilityKey(cap), options.length ? options[0].value : '');
+        const input = options.length === 0
+          ? `<input class="control-input" type="text" placeholder="Scene value" data-control="scene" data-index="${sceneIndex}" value="${escapeHtml(typeof current === 'string' ? current : '')}" ${disabled}>`
+          : `<select class="control-select" data-control="scene" data-index="${sceneIndex}" ${disabled}>${options.map(opt =>
+              `<option value="${escapeHtml(String(opt.value))}" ${String(opt.value) === String(current ?? '') ? 'selected' : ''}>${escapeHtml(opt.label)}</option>`).join('')}</select>`;
+        controls.push(`
+          <div class="control-block">
+            <div class="control-label"><span>${escapeHtml(capabilityLabel(cap))}</span></div>
+            ${input}
+            <div class="control-actions"><button class="control-btn" data-action="scene" data-index="${sceneIndex}" ${disabled}>Activate</button></div>
+          </div>`);
+      });
+      toggleCaps.forEach((cap, toggleIndex) => controls.push(`
+        <div class="control-block">
+          <div class="control-label"><span>${escapeHtml(capabilityLabel(cap))}</span></div>
+          <div class="toggle-buttons">
+            <button class="power-btn on" data-action="toggle-on" data-index="${toggleIndex}" ${disabled}>ON</button>
+            <button class="power-btn off" data-action="toggle-off" data-index="${toggleIndex}" ${disabled}>OFF</button>
+          </div>
+        </div>`));
+
+      const action = state.actionMessages[deviceKey];
+      const signalText = typeof device.wifiSignalStrength === 'number' ? `${device.wifiSignalStrength} dBm` : null;
+
+      const card = document.createElement('div');
+      card.className = 'device-card';
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="device-icon">${isLight ? ICONS.light : ICONS.socket}</div>
+          <div class="device-info">
+            <div class="device-name">${escapeHtml(device.name)}</div>
+            <div class="device-meta">${escapeHtml(device.sku)} • ${escapeHtml(device.deviceId)}</div>
+            <div class="category-chip">${DEVICE_CATEGORY_LABELS[category] ?? DEVICE_CATEGORY_LABELS.other}</div>
+          </div>
+          <div class="status-badge" style="color: ${lan.color}; background-color: ${lan.bg}">${lan.text}</div>
+        </div>
+        ${info.length ? `<div class="card-body"><div class="info-grid">${info.map(([label, value, title]) =>
+          `<div class="info-item"><span class="label">${label}</span><span class="value" title="${escapeHtml(title)}">${escapeHtml(value)}</span></div>`).join('')}</div></div>` : ''}
+        ${status ? `
+          <div class="device-state-row">
+            <div class="state-pill ${power.isOn === false ? 'off' : power.isOn ? 'on' : ''}">Power: ${power.label}</div>
+            ${brightnessText ? `<div class="state-pill">Brightness: ${brightnessText}</div>` : ''}
+            ${tempText ? `<div class="state-pill">Temp: ${tempText}</div>` : ''}
+            ${colorText ? `<div class="state-pill color-pill"><span>Color</span><span class="color-dot" style="background-color: ${colorText}"></span><span>${colorText}</span></div>` : ''}
+            ${updated ? `<div class="state-pill timestamp">Updated ${updated}</div>` : ''}
+          </div>` : ''}
+        <div class="card-footer">
+          <div class="capabilities">${capabilities.map(cap => capabilityBadge(cap.type || '')).join('')}</div>
+          <div class="footer-actions">
+            ${powerCap ? `<div class="power-controls">
+              <button class="power-btn on" data-action="power-on" title="Turn On" ${disabled}>ON</button>
+              <button class="power-btn off" data-action="power-off" title="Turn Off" ${disabled}>OFF</button>
+            </div>` : ''}
+            ${signalText ? `<div class="signal-strength" title="${signalText}">${ICONS.wifi(device.wifiSignalStrength)}<span>${signalText}</span></div>` : ''}
+          </div>
+        </div>
+        ${controls.length ? `<div class="device-controls">${controls.join('')}</div>` : ''}
+        ${action ? `<div class="action-message ${action.error ? 'error' : 'success'}">${escapeHtml(action.error ?? action.message)}</div>` : ''}
+      `;
+
+      card.addEventListener('input', event => {
+        const control = event.target.dataset.control;
+        if (control === 'brightness') {
+          setControlValue(deviceKey, capabilityKey(brightnessCap), Number(event.target.value));
+          card.querySelector('[data-readout="brightness"]').textContent = `${Math.round(Number(event.target.value))}%`;
+        } else if (control === 'temperature') {
+          setControlValue(deviceKey, capabilityKey(colorTempCap), Number(event.target.value));
+          card.querySelector('[data-readout="temperature"]').textContent = `${Math.round(Number(event.target.value))}K`;
+        } else if (control === 'color') {
+          setControlValue(deviceKey, capabilityKey(colorCap), event.target.value);
+          card.querySelector('[data-readout="color"]').textContent = event.target.value;
+        } else if (control === 'scene') {
+          const cap = sceneCaps[Number(event.target.dataset.index)];
+          const options = extractEnumOptions(cap);
+          const match = options.find(opt => String(opt.value) === event.target.value);
+          setControlValue(deviceKey, capabilityKey(cap), match ? match.value : event.target.value);
+        }
+      });
+
+      card.addEventListener('click', event => {
+        const button = event.target.closest('[data-action]');
+        if (!button || button.disabled || state.pending[deviceKey]) return;
+        const index = Number(button.dataset.index);
+        switch (button.dataset.action) {
+          case 'power-on':
+          case 'power-off': {
+            const on = button.dataset.action === 'power-on';
+            sendCommand(device, {
+              type: powerCap?.type ?? 'devices.capabilities.on_off',
+              instance: powerCap?.instance ?? 'powerSwitch',
+              value: resolveBinaryCapabilityValue(powerCap, on),
+              label: on ? 'Power on' : 'Power off'
+            });
+            break;
+          }
+          case 'brightness': {
+            const value = clamp(Math.round(Number(controlValue(deviceKey, capabilityKey(brightnessCap), brightnessRange.defaultValue))), brightnessRange.min, brightnessRange.max);
+            sendCommand(device, { type: brightnessCap.type, instance: brightnessCap.instance, value, label: 'Brightness' });
+            break;
+          }
+          case 'temperature': {
+            const value = clamp(Math.round(Number(controlValue(deviceKey, capabilityKey(colorTempCap), tempRange.defaultValue))), tempRange.min, tempRange.max);
+            sendCommand(device, { type: colorTempCap.type, instance: colorTempCap.instance, value, label: 'Color temperature' });
+            break;
+          }
+          case 'color': {
+            const current = controlValue(deviceKey, capabilityKey(colorCap), '#ffffff');
+            const rgb = parseHexColor(typeof current === 'string' ? current : '#ffffff');
+            if (!rgb) {
+              state.actionMessages[deviceKey] = { error: 'Select a valid hex color.' };
+              render();
+              return;
+            }
+            sendCommand(device, { type: colorCap.type, instance: colorCap.instance, value: packRgb(rgb), label: 'Color' });
+            break;
+          }
+          case 'scene': {
+            const cap = sceneCaps[index];
+            const options = extractEnumOptions(cap);
+            const value = controlValue(deviceKey, capabilityKey(cap), options.length ? options[0].value : '');
+            if (value === '' || value === undefined || value === null) {
+              state.actionMessages[deviceKey] = { error: 'Select a scene value before sending.' };
+              render();
+              return;
+            }
+            sendCommand(device, { type: cap.type, instance: cap.instance, value, label: capabilityLabel(cap) });
+            break;
+          }
+          case 'toggle-on':
+          case 'toggle-off': {
+            const cap = toggleCaps[index];
+            const on = button.dataset.action === 'toggle-on';
+            sendCommand(device, { type: cap.type, instance: cap.instance, value: resolveBinaryCapabilityValue(cap, on), label: `${capabilityLabel(cap)} ${on ? 'on' : 'off'}` });
+            break;
+          }
+        }
+      });
+
+      return card;
+    }
+
+    function render() {
+      renderHeader();
+      renderStats();
+
+      const notice = $('notice');
+      if (state.error)
+        notice.innerHTML = `<div class="alert">${escapeHtml(state.error)}</div>`;
+      else if (!state.meta.success && state.meta.message)
+        notice.innerHTML = `<div class="notice">${escapeHtml(state.meta.message)}</div>`;
+      else
+        notice.innerHTML = '';
+
+      const grid = $('grid');
+      const devices = filteredDevices();
+      grid.replaceChildren(...devices.map(renderDeviceCard));
+      $('empty').hidden = state.loading || devices.length > 0 || !!state.error || !state.meta.success;
+      reportFrameHeight();
+    }
+
+    function init() {
+      $('typeFilter').innerHTML = DEVICE_TYPE_OPTIONS.map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
+      $('powerFilter').innerHTML = POWER_FILTER_OPTIONS.map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
+      $('search').addEventListener('input', event => { state.search = event.target.value; render(); });
+      $('typeFilter').addEventListener('change', event => { state.typeFilter = event.target.value; render(); });
+      $('powerFilter').addEventListener('change', event => { state.powerFilter = event.target.value; render(); });
+      $('refreshState').addEventListener('click', () => fetchDeviceStatuses());
+      $('refreshList').addEventListener('click', () => loadDevices(true));
+      if ('ResizeObserver' in window)
+        new ResizeObserver(reportFrameHeight).observe($('shell'));
+      window.addEventListener('load', reportFrameHeight);
+      render();
+      loadDevices(false);
+    }
+
+    init();
+  </script>
+</body>
+</html>

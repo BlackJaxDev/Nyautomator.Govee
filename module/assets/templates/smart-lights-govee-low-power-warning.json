@@ -1,0 +1,42 @@
+{
+  "$schema": "nyautomator.template.v1",
+  "id": "smart-lights-govee-low-power-warning",
+  "kind": "automation-workflow",
+  "title": "Low-power warning",
+  "group": "Smart Lights (Govee)",
+  "summary": "timer interval -> read system/CPU or device state -> if threshold, set warning color + log.",
+  "description": "Low-power warning: timer interval -> read system/CPU or device state -> if threshold, set warning color + log.",
+  "rootOnly": true,
+  "generatedFrom": "docs/template-ideas.md",
+  "triggers": [
+    {
+      "id": "trigger-1",
+      "actionType": "Event.Timer.Interval",
+      "actionConfig": {
+        "IntervalMs": 600000,
+        "TimerId": "low-power-warning"
+      },
+      "actionName": "Low-power warning Timer"
+    }
+  ],
+  "messageTemplate": "{{TimerId}} tick {{TickCount}} at {{UtcTimestamp}}.",
+  "constants": [
+    {
+      "key": "colorHex",
+      "name": "Govee Color Hex",
+      "value": "#ff3344",
+      "type": "string"
+    },
+    {
+      "key": "brightness",
+      "name": "Govee Brightness",
+      "value": 25,
+      "type": "int32"
+    }
+  ],
+  "steps": [
+    "govee-color",
+    "govee-brightness",
+    "log"
+  ]
+}

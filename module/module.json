@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "id": "govee",
+  "displayName": "Govee",
+  "description": "Govee Open API device control, realtime device events, and smart-light automation nodes.",
+  "version": "0.1.0",
+  "minHostVersion": "0.0.0",
+  "entryAssembly": "Nyautomator.Module.Govee.dll",
+  "entryType": "Nyautomator.Modules.Govee.GoveeModule",
+  "capabilities": [
+    "runtime.integration",
+    "automation.nodes",
+    "dashboard.cards",
+    "settings.cards",
+    "integration.tabs",
+    "graph.templates",
+    "icons",
+    "mcp.tools"
+  ],
+  "assetsRoot": "assets",
+  "contributions": {
+    "icons": [
+      {
+        "id": "govee",
+        "path": "icons/govee.svg"
+      }
+    ],
+    "dashboardCards": [
+      {
+        "id": "status",
+        "title": "Govee",
+        "icon": "govee",
+        "renderer": "status-card",
+        "statusSource": "/modules/govee/api/status",
+        "actions": [
+          {
+            "id": "refresh",
+            "label": "Refresh",
+            "method": "GET",
+            "path": "/modules/govee/api/status"
+          },
+          {
+            "id": "refreshDevices",
+            "label": "Refresh Devices",
+            "method": "POST",
+            "path": "/modules/govee/api/refresh"
+          }
+        ],
+        "order": 600
+      }
+    ],
+    "settingsCards": [
+      {
+        "id": "settings",
+        "title": "Govee Smart Devices",
+        "icon": "govee",
+        "renderer": "asset-frame",
+        "configPath": "/modules/govee/config",
+        "schemaPath": "config/govee.schema.json",
+        "statusSource": "/modules/govee/api/status",
+        "assetPath": "settings/settings.html",
+        "metadata": {
+          "saveOnHostSave": true
+        },
+        "order": 600
+      }
+    ],
+    "integrationTabs": [
+      {
+        "id": "devices",
+        "label": "Govee LAN",
+        "icon": "govee",
+        "renderer": "asset-frame",
+        "assetPath": "tabs/devices.html",
+        "route": "govee",
+        "order": 600
+      }
+    ],
+    "configurations": [
+      {
+        "id": "options",
+        "schemaPath": "config/govee.schema.json",
+        "defaults": {}
+      }
+    ],
+    "mcpTools": [
+      {
+        "id": "status",
+        "name": "govee.status",
+        "title": "Get Govee Status",
+        "description": "Read Govee API key configuration and cached device count.",
+        "method": "GET",
+        "path": "/modules/govee/api/status",
+        "requiresApproval": false,
+        "order": 600
+      },
+      {
+        "id": "devices",
+        "name": "govee.devices",
+        "title": "List Govee Devices",
+        "description": "List Govee devices and their capabilities.",
+        "method": "GET",
+        "path": "/modules/govee/api/devices",
+        "requiresApproval": false,
+        "order": 601
+      },
+      {
+        "id": "control",
+        "name": "govee.control",
+        "title": "Control Govee Device",
+        "description": "Send a capability command (power, brightness, color, scene) to a Govee device.",
+        "method": "POST",
+        "path": "/modules/govee/api/device/control",
+        "requiresApproval": true,
+        "inputSchema": {
+          "type": "object",
+          "required": [
+            "deviceId",
+            "sku"
+          ],
+          "properties": {
+            "deviceId": {
+              "type": "string"
+            },
+            "sku": {
+              "type": "string"
+            },
+            "capabilityType": {
+              "type": "string"
+            },
+            "instance": {
+              "type": "string"
+            },
+            "value": {},
+            "parameters": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "order": 602
+      }
+    ],
+    "graphTemplates": [
+      {
+        "id": "smart-lights-govee-alert-light-flash",
+        "label": "Alert light flash",
+        "description": "follow/sub/cheer event -> set Govee color + brightness -> delay -> restore previous via captured variable.",
+        "category": "Smart Lights (Govee)",
+        "path": "templates/smart-lights-govee-alert-light-flash.json",
+        "requiredModuleIds": [
+          "govee"
+        ],
+        "order": 600
+      },
+      {
+        "id": "smart-lights-govee-hype-train-light-show",
+        "label": "Hype train light show",
+        "description": "hype train progress -> escalate Govee brightness/color by level -> reset on end.",
+        "category": "Smart Lights (Govee)",
+        "path": "templates/smart-lights-govee-hype-train-light-show.json",
+        "requiredModuleIds": [
+          "govee"
+        ],
+        "order": 601
+      },
+      {
+        "id": "smart-lights-govee-low-power-warning",
+        "label": "Low-power warning",
+        "description": "timer interval -> read system/CPU or device state -> if threshold, set warning color + log.",
+        "category": "Smart Lights (Govee)",
+        "path": "templates/smart-lights-govee-low-power-warning.json",
+        "requiredModuleIds": [
+          "govee"
+        ],
+        "order": 602
+      },
+      {
+        "id": "smart-lights-govee-redemption-color-reward",
+        "label": "Redemption color reward",
+        "description": "channel point reward (e.g. \"Change my lights\") -> parse requested color -> validate -> set Govee device color -> chat confirm.",
+        "category": "Smart Lights (Govee)",
+        "path": "templates/smart-lights-govee-redemption-color-reward.json",
+        "requiredModuleIds": [
+          "govee"
+        ],
+        "order": 603
+      }
+    ],
+    "automationAssemblies": [
+      {
+        "id": "nodes",
+        "path": "Nyautomator.Automation.Govee.dll"
+      }
+    ],
+    "runtimeParticipants": [
+      {
+        "id": "runtime",
+        "typeName": "Nyautomator.Modules.Govee.GoveeRuntimeParticipant, Nyautomator.Module.Govee"
+      }
+    ]
+  }
+}

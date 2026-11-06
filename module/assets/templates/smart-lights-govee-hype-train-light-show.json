@@ -1,0 +1,66 @@
+{
+  "$schema": "nyautomator.template.v1",
+  "id": "smart-lights-govee-hype-train-light-show",
+  "kind": "automation-workflow",
+  "title": "Hype train light show",
+  "group": "Smart Lights (Govee)",
+  "summary": "hype train progress -> escalate Govee brightness/color by level -> reset on end.",
+  "description": "Hype train light show: hype train progress -> escalate Govee brightness/color by level -> reset on end.",
+  "rootOnly": true,
+  "generatedFrom": "docs/template-ideas.md",
+  "triggers": [
+    {
+      "id": "trigger-1",
+      "actionType": "Manual.DashboardButton",
+      "actionConfig": {
+        "ButtonText": "Hype train light show"
+      },
+      "actionName": "Hype train light show Button"
+    }
+  ],
+  "messageTemplate": "Hype train light show triggered.",
+  "constants": [
+    {
+      "key": "mediaPath",
+      "name": "Alert Media Path",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "audioPath",
+      "name": "Alert Audio Path",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "durationSeconds",
+      "name": "Alert Duration Seconds",
+      "value": 6,
+      "type": "float64"
+    },
+    {
+      "key": "playTextToSpeech",
+      "name": "Play Text To Speech",
+      "value": false,
+      "type": "boolean"
+    },
+    {
+      "key": "colorHex",
+      "name": "Govee Color Hex",
+      "value": "#44ccff",
+      "type": "string"
+    },
+    {
+      "key": "brightness",
+      "name": "Govee Brightness",
+      "value": 100,
+      "type": "int32"
+    }
+  ],
+  "steps": [
+    "alert",
+    "govee-color",
+    "govee-brightness",
+    "log"
+  ]
+}

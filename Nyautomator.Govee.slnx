@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Nyautomator.Automation.Govee/Nyautomator.Automation.Govee.csproj" />
+    <Project Path="src/Nyautomator.Govee/Nyautomator.Govee.csproj" />
+    <Project Path="src/Nyautomator.Module.Govee/Nyautomator.Module.Govee.csproj" />
+    <Project Path="src/Nyautomator.Runtime.Integrations.Govee/Nyautomator.Runtime.Integrations.Govee.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Nyautomator.Module.Govee.Tests/Nyautomator.Module.Govee.Tests.csproj" />
+  </Folder>
+</Solution>

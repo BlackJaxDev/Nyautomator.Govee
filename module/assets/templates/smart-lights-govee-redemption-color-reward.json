@@ -1,0 +1,59 @@
+{
+  "$schema": "nyautomator.template.v1",
+  "id": "smart-lights-govee-redemption-color-reward",
+  "kind": "automation-workflow",
+  "title": "Redemption color reward",
+  "group": "Smart Lights (Govee)",
+  "summary": "channel point reward (e.g. \"Change my lights\") -> parse requested color -> validate -> set Govee device color -> chat confirm.",
+  "description": "Redemption color reward: channel point reward (e.g. \"Change my lights\") -> parse requested color -> validate -> set Govee device color -> chat confirm.",
+  "rootOnly": true,
+  "generatedFrom": "docs/template-ideas.md",
+  "triggers": [
+    {
+      "id": "trigger-1",
+      "actionType": "Twitch.EventSub.channel.channel_points_custom_reward_redemption.add.1.ByReward",
+      "actionConfig": {
+        "Reward": ""
+      },
+      "actionName": "Channel Point Redemption"
+    }
+  ],
+  "messageTemplate": "{{UserName}} redeemed {{Reward.Title}}: {{UserInput}}",
+  "constants": [
+    {
+      "key": "mediaPath",
+      "name": "Alert Media Path",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "audioPath",
+      "name": "Alert Audio Path",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "durationSeconds",
+      "name": "Alert Duration Seconds",
+      "value": 6,
+      "type": "float64"
+    },
+    {
+      "key": "playTextToSpeech",
+      "name": "Play Text To Speech",
+      "value": false,
+      "type": "boolean"
+    },
+    {
+      "key": "colorHex",
+      "name": "Govee Color Hex",
+      "value": "#44ccff",
+      "type": "string"
+    }
+  ],
+  "steps": [
+    "alert",
+    "govee-color",
+    "log"
+  ]
+}

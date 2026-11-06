@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "properties": {
+    "apiKey": {
+      "type": "string",
+      "title": "Govee API key",
+      "description": "API key issued by the Govee Developer Portal.",
+      "format": "password",
+      "writeOnly": true,
+      "x-secret": true,
+      "metadata": { "secret": true }
+    }
+  },
+  "additionalProperties": false
+}
